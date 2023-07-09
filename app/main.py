@@ -54,22 +54,23 @@ async def root():
 def get_posts():
     cursor.execute(""" SELECT * FROM posts""")
     posts = cursor.fetchall()
-    print(posts)
     return {"data": posts}
 
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post: Post):
-    post_dict = post.dict()
-    post_dict['id'] = randrange(0, 1000000)
-    my_posts.append(post_dict)
-    return {"data": post_dict}
+    cursor.execute(""" INSERT INTO posts(title, content, published) VALUES(%s, %s,%s) RETURNING * """,
+                   (post.title, post.content, post.published))
+    new_post = cursor.fetchone()
+    conn.commit()
+    return {"data": new_post}
 
 
 @app.get("/posts/{id}")
 def get_post(id: int, response: Response):
+    cursor.execute("""SELECT * from posts WHERE id = %s """, (str(id),))
+    post = cursor.fetchone()
 
-    post = find_post(id)
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with id : {id} was not found.")
@@ -79,12 +80,15 @@ def get_post(id: int, response: Response):
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
+    cursor.execute(
+        """DELETE FROM posts WHERE id = %s returning * """, (str(id),))
+    deleted_post = cursor.fetchone()
+    conn.commit()
 
-    index = find_index_post(id)
-    if index == None:
+    if deleted_post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"post with id :{id} doesn't exit")
-    my_posts.pop(index)
+                            detail=f"post with id :{id} doesn't exit.")
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
