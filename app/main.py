@@ -7,7 +7,7 @@ from psycopg2.extras import RealDictCursor
 import time
 from sqlalchemy.orm import Session
 from .import models
-from .database import engine, SessionLocal, get_db
+from .database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -56,14 +56,17 @@ async def root():
 
 
 @app.get("/sqlalchemy")
-def test_post(db: Session = Depends(get_db)):
-    return {"status": "sucess"}
+def test_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
+    print(posts)
+    return {"data": "posts"}
 
 
 @app.get("/posts")
-def get_posts():
-    cursor.execute(""" SELECT * FROM posts""")
-    posts = cursor.fetchall()
+def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute(""" SELECT * FROM posts""")
+    # posts = cursor.fetchall()
+    posts = db.query(models.Post).all()
     return {"data": posts}
 
 
