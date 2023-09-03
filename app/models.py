@@ -4,6 +4,8 @@ from sqlalchemy.sql.sqltypes import TIMESTAMP
 
 from .database import Base
 
+# Sqlalchemy model(Responsible for defining the columns of our "posts" table within postgres)
+
 
 class Post(Base):
     __tablename__ = "posts"
