@@ -29,19 +29,29 @@ def override_get_db():
         db.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest.fixture
+def session():
+    Base.metadata.drop_all(bind=engine)  # destroy a table
+    Base.metadata.create_all(bind=engine)  # create a table
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 @pytest.fixture
-def client():
-    # Base.metadata.drop_all(bind=engine)  # destroy a table
-    # Base.metadata.create_all(bind=engine)  # create a table
-    command.upgrade("head")
+def client(session):
+    def override_get_db():
+        try:
+            yield session
+        finally:
+            session.close()
+    app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
-    command.downgrade("base")
 
 
-def test_root(client):
+def test_root(client, session):
     res = client.get("/")
     print(res.json().get('message'))
     assert res.json().get('message') == 'Hello World hurra!!!'
