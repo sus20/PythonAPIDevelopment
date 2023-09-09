@@ -34,9 +34,11 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture
 def client():
-    Base.metadata.drop_all(bind=engine)  # destroy a table
-    Base.metadata.create_all(bind=engine)  # create a table
+    # Base.metadata.drop_all(bind=engine)  # destroy a table
+    # Base.metadata.create_all(bind=engine)  # create a table
+    command.upgrade("head")
     yield TestClient(app)
+    command.downgrade("base")
 
 
 def test_root(client):
