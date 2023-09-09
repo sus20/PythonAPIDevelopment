@@ -1,4 +1,5 @@
 from fastapi.testclient import TestClient
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -6,6 +7,7 @@ from app.main import app
 from app import schemas
 from app.config import settings
 from app.database import get_db, Base
+from alembic import command
 
 
 SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}_test'
@@ -29,17 +31,22 @@ def override_get_db():
 
 app.dependency_overrides[get_db] = override_get_db
 
-client = TestClient(app)
+
+@pytest.fixture
+def client():
+    Base.metadata.drop_all(bind=engine)  # destroy a table
+    Base.metadata.create_all(bind=engine)  # create a table
+    yield TestClient(app)
 
 
-def test_root():
+def test_root(client):
     res = client.get("/")
     print(res.json().get('message'))
     assert res.json().get('message') == 'Hello World hurra!!!'
     assert res.status_code == 200
 
 
-def test_creat_user():
+def test_creat_user(client):
     res = client.post(
         "/users", json={"email": "hello123@gmail.com", "password": "password123"})
 
