@@ -119,6 +119,16 @@ def test_update_other_user_post(authorized_client, test_user, test_user2, test_p
     assert res.status_code == 403
 
 
-# def test_unauthorized_user_delete_Post(client, test_posts):
-#     res = client.delete(f"/posts/{test_posts[0].id}")
-#     assert res.status_code == 401
+def test_unauthorized_user_update_Post(client, test_posts):
+    res = client.put(f"/posts/{test_posts[0].id}")
+    assert res.status_code == 401
+
+
+def test_update_post_non_exist(authorized_client, test_posts):
+    data = {
+        "title": "update title",
+        "content": "update content",
+        "id": test_posts[3].id
+    }
+    res = authorized_client.put(f"/posts/8888", json=data)
+    assert res.status_code == 404
