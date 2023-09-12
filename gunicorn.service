@@ -1,0 +1,13 @@
+[Unit]
+Description=gunicorn instance to server api 
+After=newwork.target
+
+[Service]
+User=sushma
+Group=sushma
+WorkingDirectory=/home/sushma/app/src/
+Environment="PATH=/home/sushma/app/venv/bin"
+ExecStart=/home/sushma/app/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+
+[Install]
+WantedBy=multi-user.target
