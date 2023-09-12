@@ -5,9 +5,11 @@ from sqlalchemy.orm import sessionmaker
 from app.main import app
 
 from app.config import settings
-from app.database import get_db, Base
+from app.database import get_db
+from app.database import Base
 from app.oauth2 import create_access_token
 from app import models
+from alembic import command
 
 SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}:{settings.database_port}/{settings.database_name}_test'
 
